@@ -1,0 +1,46 @@
+@import './node_modules/sassdash/scss/sassdash';
+
+$mx-components: static('mx-components', ()) !global;
+
+
+@function mx-matches-selector($first, $second, $args...) {
+  $second: _get($second, 'selector');
+
+  @return _to-string($first) == _to-string($second);
+}
+
+@mixin mx($component) {
+  @if _is-string($component) or _is-list($component) {
+    @include mx-get($component) {
+      @content;
+    }
+  } @else if _is-map($component) {
+    @include mx-set(#{&}, $component) {
+      @content;
+    }
+  }
+}
+
+@mixin mx-get($selector) {
+  $component: _find($mx-components, _partial(mx-matches-selector, $selector));
+  $declarations: _get($component, 'declarations');
+
+  @include _declare($declarations) {
+    @content;
+  }
+}
+
+@mixin mx-set($selector, $declarations) {
+  $component: (
+    selector: $selector,
+    declarations: $declarations
+  );
+
+  $mx-components: _push($mx-components, $component) !global;
+
+  $mx-components: static('mx-components', $mx-components) !global;
+
+  @include mx-get($selector) {
+    @content;
+  }
+}
